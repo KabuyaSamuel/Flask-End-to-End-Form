@@ -3,7 +3,6 @@ import sqlite3
 
 app = Flask(__name__)
 
-# Connect to a SQLite database
 conn = sqlite3.connect("form_data.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -24,3 +23,26 @@ def show_form():
 
 
 # Route handler for submitting the form
+@app.route("/submit", methods=["POST"])
+def submit_form():
+    name = request.form["name"]
+    email = request.form["email"]
+    message = request.form["message"]
+
+    cursor.execute("""INSERT INTO form_data (name, email, message)
+                      VALUES (?, ?, ?)""", (name, email, message))
+    conn.commit()
+
+    return redirect(url_for("list_items"))
+
+
+# Route handler to display all items
+@app.route("/items")
+def list_items():
+    cursor.execute("SELECT * FROM form_data")
+    items = cursor.fetchall()
+    return render_template("items.html", items=items)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
